@@ -41,6 +41,9 @@ int main(int argc, char* argv[]) {
     ofstream matrix_file1("matrix1.txt");
     ofstream matrix_file2("matrix2.txt");
 
+    matrix_file1 << dim_n1 << " " << dim_m1 << endl;
+    matrix_file2 << dim_n2 << " " << dim_m2 << endl;
+
     for (int i = 0; i < dim_n1; i++) {
         for (int j = 0; j < dim_m1; j++) {
             matrix_file1 << "c" << i << j << " " << matrix1[i][j] << endl; 
