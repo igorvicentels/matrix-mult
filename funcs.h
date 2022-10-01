@@ -25,5 +25,10 @@ vector<vector<int>> mul_matrix(vector<vector<int>>& matrix1, vector<vector<int>>
 // write matrix to txt file
 void write_matrix(ofstream& file, vector<vector<int>>& matrix, int dim_n, int dim_m);
 
+// div_ceil
+int div_ceil(int x, int y);
+
+// write matrix to txt file (used in parallel cases)
+void write_matrix_p(vector<vector<int>> matrix, int t, int start, int end, int time);
 
 #endif

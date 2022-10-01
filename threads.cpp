@@ -8,39 +8,16 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <utility>
+
+#include "funcs.h"
 
 using namespace std;
 
-void write_matrix(vector<vector<int>> matrix, int t, int start, int end) {
-    int i = start;
-    string str = std::string("thread") + to_string(t) + ".txt";
-    ofstream file;
-    file.open(str);
-    file << matrix[0].size() << " " << matrix.size() << endl;
-    while (i < end) {
-        int x = i % matrix.size();
-        int y = i / matrix.size();
-        file << "c" << x << y << " " << matrix[x][y] << endl;
-        i++;
-    }
-    file.close();
-}
-
-void print_matrix(vector<vector<int>> matrix) {
-    for (int i = 0; i < matrix.size(); i++) {
-        for (int j = 0; j < matrix[i].size(); j++) {
-            cout << setw(5) << matrix[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
-void runner(int x, int p, vector<vector<int>> m1, vector<vector<int>> m2) {
+void runner(int x, int p, vector<vector<int>> m1, vector<vector<int>> m2, vector<vector<int>>& res) {
     int start = x * p;
     int m_size = m1.size() * m2[0].size();
     int end = min(p * (x + 1), m_size);
-    cout << "Esta é a execução da Thread " << x << endl;
-    vector<vector<int>> res;
 
     for (int i = 0; i < m1[0].size(); i++) {
         res.push_back(vector<int>());
@@ -48,37 +25,43 @@ void runner(int x, int p, vector<vector<int>> m1, vector<vector<int>> m2) {
             res[i].push_back(0);
         }
     }
+
     int i = start;
-    while (i < p * (x + 1) && i < m1.size() * m2[0].size()) {
-        int x = i % res.size();
-        int y = i / res.size();
+    while (i < end) {
+        int y = i % res.size();
+        int x = i / res.size();
 
         for(int j = 0; j < m1[0].size(); j++) {
             res[x][y] += m1[x][j] * m2[j][y];
         }    
         i++;
     }
-    print_matrix(m1);
-    print_matrix(m2);
-    print_matrix(res);
-    write_matrix(res, x, start, end);
-}
-
-
-
-int div_ceil(int x, int y) {
-    return x / y + (x % y > 0);
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 6)
+    if (argc < 4)
         return 1; 
 
-    int dim_n1 = atoi(argv[1]);
-    int dim_m1 = atoi(argv[2]);
-    int dim_n2 = atoi(argv[3]);
-    int dim_m2 = atoi(argv[4]);
-    int p = atoi(argv[5]);
+    int dim_n1, dim_m1, dim_n2, dim_m2;
+
+    string str1 = argv[1];
+    string str2 = argv[2];
+    int p = stoi(argv[3]);
+
+    string line;
+
+    vector<string> vec1;
+    vector<string> vec2;
+
+    ifstream file1(str1);
+    ifstream file2(str2);
+
+    vector<vector<int>> matrix1;
+    vector<vector<int>> matrix2;
+    // vector<vector<int>> res;
+
+    tie(dim_n1, dim_m1) = read_dims(file1);
+    tie(dim_n2, dim_m2) = read_dims(file2);
 
     if (dim_n1 != dim_n2) // check if matrices can be multiplied
         return 2;
@@ -87,44 +70,40 @@ int main(int argc, char* argv[]) {
     int n_threads = div_ceil(n_elems, p);
     cout << "Número de threads: " << n_threads << endl;
 
-
-    vector<vector<int>> matrix1;
-    for (int i = 0; i < dim_n1; i++) {
-        matrix1.push_back(vector<int>());
-        for (int j = 0; j < dim_m1; j++) {
-            matrix1[i].push_back(rand() % 10 + 1);
-        }
-    }
-
-    vector<vector<int>> matrix2;
-    for (int i = 0; i < dim_n2; i++) {
-        matrix2.push_back(vector<int>());
-        for (int j = 0; j < dim_m2; j++) {
-            matrix2[i].push_back(rand() % 10 + 1);
-        }
-    }
-
-    vector<vector<int>> res {};
+    read_matrix(file1, matrix1, dim_n1, dim_m1);
+    read_matrix(file2, matrix2, dim_n2, dim_m2);
     
     thread threads[n_threads];
+
+    chrono::steady_clock::time_point start_times[n_threads];
+    chrono::steady_clock::time_point end_times[n_threads];
+
+    vector<vector<int>> res[n_threads];
 
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
     for(int i = 0; i < n_threads; i++) {
-        threads[i] = std::thread(runner, i, p, matrix1, matrix2);
-        sleep(1);
+        start_times[i] = chrono::steady_clock::now();
+        threads[i] = std::thread(runner, i, p, matrix1, matrix2, ref(res[i]));
     }
 
     for(int i = 0; i < n_threads; i++) {
         threads[i].join();
-        cout << "Thread " << i << " finalizada" << endl; 
+        end_times[i] = chrono::steady_clock::now(); 
+        int start = i * p;
+        int m_size = matrix1.size() * matrix2[0].size();
+        int end = min(p * (i + 1), m_size);
+        int time = chrono::duration_cast<chrono::milliseconds>(end_times[i] - start_times[i]).count();
+        write_matrix_p(res[i], i, start, end, time);
     }
 
-    
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
     cout << "Tempo: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " ms" << endl;
     return 0;
-
-    // 2350 = 122017 ms
 }
+
+// sequential -> 1600 X 1600 = 47229 ms
+// 8 threads -> 1600 x 1600 =  15978 ms
+// sequential -> 3200 X 3200 = 323146 ms
+// 8 threads -> 3200 x 3200 =  89034 ms (thread0: 78100 ms)

@@ -83,3 +83,23 @@ void write_matrix(ofstream& file, vector<vector<int>>& matrix, int dim_n, int di
         }
     }
 }
+
+int div_ceil(int x, int y) {
+    return x / y + (x % y > 0);
+}
+
+void write_matrix_p(vector<vector<int>> matrix, int t, int start, int end, int time) {
+    int i = start;
+    string str = std::string("thread") + to_string(t) + ".txt";
+    ofstream file;
+    file.open(str);
+    file << matrix[0].size() << " " << matrix.size() << endl;
+    while (i < end) {
+        int y = i % matrix.size();
+        int x = i / matrix.size();
+        file << "c" << x << y << " " << matrix[x][y] << endl;
+        i++;
+    }
+    file << time;
+    file.close();
+}

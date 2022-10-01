@@ -46,12 +46,6 @@ int main(int argc, char* argv[]) {
     
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
-    print_matrix(matrix1);
-    cout << endl;
-    print_matrix(matrix2);
-    cout << endl;
-    print_matrix(res);
-
     cout << "Tempo " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "ms" << endl;
     
     ofstream file3("seq_res.txt");
@@ -59,6 +53,8 @@ int main(int argc, char* argv[]) {
     write_matrix(file3, res, dim_n1, dim_m2);
     
     file3 << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << endl;
+
+    file3.close();
     
     return 0;
     // 3200 X 3200 = 461052ms
