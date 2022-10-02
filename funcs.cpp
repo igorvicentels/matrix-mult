@@ -103,3 +103,19 @@ void write_matrix_p(vector<vector<int>> matrix, int t, int start, int end, int t
     file << time;
     file.close();
 }
+
+void write_matrix_pp(vector<vector<int>> matrix, int t, int start, int end, int time) {
+    int i = start;
+    string str = std::string("processo") + to_string(t) + ".txt";
+    ofstream file;
+    file.open(str);
+    file << matrix[0].size() << " " << matrix.size() << endl;
+    while (i < end) {
+        int y = i % matrix.size();
+        int x = i / matrix.size();
+        file << "c" << x << y << " " << matrix[x][y] << endl;
+        i++;
+    }
+    file << time;
+    file.close();
+}
