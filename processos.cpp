@@ -7,11 +7,37 @@
 #include <unistd.h>
 #include <vector>
 #include <fstream>
-#include <functional>
+#include <algorithm>
+#include <string>
+#include <utility>
 
 #include "funcs.h"
 
 using namespace std;
+
+void runner(int x, int p, vector<vector<int>> m1, vector<vector<int>> m2, vector<vector<int>>& res) {
+    int start = x * p;
+    int m_size = m1.size() * m2[0].size();
+    int end = min(p * (x + 1), m_size);
+
+    for (int i = 0; i < m1[0].size(); i++) {
+        res.push_back(vector<int>());
+        for (int j = 0; j < m2.size(); j++) {
+            res[i].push_back(0);
+        }
+    }
+
+    int i = start;
+    while (i < end) {
+        int y = i % res.size();
+        int x = i / res.size();
+
+        for(int j = 0; j < m1[0].size(); j++) {
+            res[x][y] += m1[x][j] * m2[j][y];
+        }    
+        i++;
+    }
+}
 
 int main(int argc, char* argv[]){
     if (argc < 4)
@@ -46,19 +72,11 @@ int main(int argc, char* argv[]){
 
     int n_elems = dim_n1 * dim_m2; 
     int n_processos = div_ceil(n_elems, p);
-    cout << "Número de processos: " << n_processos << endl;
 
     read_matrix(file1, matrix1, dim_n1, dim_m1);
     read_matrix(file2, matrix2, dim_n2, dim_m2);
 
-    /* SÓ PRA VISUALIZAR A MATRIX1
-    for (int i = 0; i < dim_n1 ; i++){
-        for (int j = 0; j < dim_m1; j++){
-            cout<<(matrix1[i][j]);
-        }
-        printf("\n");
-    }*/
-
+    vector<vector<int>> res[n_processos];
 
     pid_t pid[n_processos];
     pid_t wpid;
@@ -72,12 +90,13 @@ int main(int argc, char* argv[]){
         }
         else if (pid[i] == 0){  //o que tá aqui é o processo filho
             start_time = chrono::steady_clock::now();
-            sleep(3);
-            //MULTIPLICAÇÃO DE MATRIZ AQUI
+            runner(i, p, matrix1, matrix2, res[i]);
             end_time = chrono::steady_clock::now(); 
             int time = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
-            printf("%d \n", time);
-            printf("PID FILHO: %d PID PAI: %d \n", getpid(), getppid());
+            int start = i * p;
+            int m_size = matrix1.size() * matrix2[0].size();
+            int end = min(p * (i + 1), m_size);
+            write_matrix_pp(res[i], i, start, end, time);
             exit(0);
         }
         while ((wpid = wait(&status)) > 0);
