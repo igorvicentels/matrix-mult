@@ -31,4 +31,7 @@ int div_ceil(int x, int y);
 // write matrix to txt file (used in parallel cases)
 void write_matrix_p(vector<vector<int>> matrix, int t, int start, int end, int time);
 
+// write matrix to txt file (used in parallel cases) (for processes analysis)
+void write_matrix_pp(vector<vector<int>> matrix, int t, int start, int end, int time);
+
 #endif
