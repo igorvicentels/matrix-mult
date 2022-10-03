@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
             write_matrix_pp(res[i], i, start, end, time);
             exit(0);
         }
-        while ((wpid = wait(&status)) > 0);
     }
+    while ((wpid = wait(&status)) > 0);
     exit(0);
 }

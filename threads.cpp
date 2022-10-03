@@ -80,8 +80,6 @@ int main(int argc, char* argv[]) {
 
     vector<vector<int>> res[n_threads];
 
-    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-
     for(int i = 0; i < n_threads; i++) {
         start_times[i] = chrono::steady_clock::now();
         threads[i] = std::thread(runner, i, p, matrix1, matrix2, ref(res[i]));
@@ -97,18 +95,8 @@ int main(int argc, char* argv[]) {
         int m_size = matrix1.size() * matrix2[0].size();
         int end = min(p * (i + 1), m_size);
         int time = chrono::duration_cast<chrono::milliseconds>(end_times[i] - start_times[i]).count();
-        printf("%d\n", time); 
         write_matrix_p(res[i], i, start, end, time);
     }
 
-    chrono::steady_clock::time_point end = chrono::steady_clock::now();
-
-    // cout << "Tempo: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " ms" << endl;
-    printf("-------------------------------------\n");
     return 0;
 }
-
-// sequential -> 1600 X 1600 = 47229 ms
-// 8 threads -> 1600 x 1600 =  15978 ms
-// sequential -> 3200 X 3200 = 323146 ms
-// 8 threads -> 3200 x 3200 =  89034 ms (thread0: 78100 ms)
