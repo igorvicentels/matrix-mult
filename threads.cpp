@@ -89,17 +89,22 @@ int main(int argc, char* argv[]) {
 
     for(int i = 0; i < n_threads; i++) {
         threads[i].join();
-        end_times[i] = chrono::steady_clock::now(); 
+        end_times[i] = chrono::steady_clock::now();
+    }
+
+    for (int i = 0; i < n_threads; i++) {
         int start = i * p;
         int m_size = matrix1.size() * matrix2[0].size();
         int end = min(p * (i + 1), m_size);
         int time = chrono::duration_cast<chrono::milliseconds>(end_times[i] - start_times[i]).count();
+        printf("%d\n", time); 
         write_matrix_p(res[i], i, start, end, time);
     }
 
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
-    cout << "Tempo: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " ms" << endl;
+    // cout << "Tempo: " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << " ms" << endl;
+    printf("-------------------------------------\n");
     return 0;
 }
 
